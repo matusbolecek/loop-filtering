@@ -1,3 +1,9 @@
+config.json
+profiles/
+output/
+
+# Python (gh auto)
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

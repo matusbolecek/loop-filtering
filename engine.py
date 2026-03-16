@@ -147,7 +147,7 @@ class Compare(FileProcessing):
 
                     if score >= self.threshold:
                         matched = j 
-                        print(f'Found match in profile {j}')
+                        print(f'Found match in choice nr. {j}')
                         break
                 
                 output.append((loop, matched))
