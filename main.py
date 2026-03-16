@@ -113,25 +113,31 @@ if __name__ == "__main__":
 
     match choice: 
         case "1": # Filter new
-            user = UserInput() 
+            user = UserInput()
 
             if user.read_input():
-                cfg = Config() 
+                cfg = Config()
 
                 if cfg.dict:
                     selected_profiles = cfg.user_to_names()
-                    selected_paths = [cfg.get_folder(p) for p in selected_profiles]
                     
-                    comp = Compare(selected_paths)
-                    pairs = comp.compare_all(user.input_folder)
+                    profile_paths = [Path('profiles') / (p + '.npy') for p in selected_profiles]
+
+                    # This should not happen unless some file moving bullshit...
+                    missing = [p for p in profile_paths if not p.exists()]
+                    if missing:
+                        print(f"Missing profile files: {[p.name for p in missing]}")
+
+                    else:
+                        output_paths = [cfg.get_folder(p) for p in selected_profiles]
                     
-                    for x in pairs:
-                        loop, i = x # tuple unpack
-                        
-                        if i is not None:
-                            loop_path = user.input_folder / loop 
-                            out_path = selected_paths[i] / loop
-                            shutil.move(loop_path, out_path)            
+                        comp = Compare(profile_paths)
+                        pairs = comp.compare_all(user.input_folder)
+                    
+                        for loop, i in pairs:
+                            if i is not None:
+                                out_path = output_paths[i] / loop.name
+                                shutil.move(loop, out_path)         
 
         case "2": # Train new profile
             user = UserInput() 
