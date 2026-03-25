@@ -61,7 +61,7 @@ class Config(FileProcessing, DefConfig):
         self._save(self.profile_dict, self.profiles_path)
 
     def save_opts(self):
-        self._save(self.conf_dict, self.conf_dict)
+        self._save(self.conf_dict, self.conf_path)
 
     def add_profile(self, name):
         self.profile_dict[name] = ""  # empty = use default at runtime
@@ -140,6 +140,24 @@ class ConfigUpdater(Config):
 
         except Exception as e:
             print(f"An error has occurred: {e}. No changes have been made")
+
+    def delete_profile(self, names):
+        for name in names:
+            del self.profile_dict[name]
+            self.profile_list = list(self.profile_dict.keys())
+
+        self.save_profiles()
+
+    def update_profile_folder(self, name, new_folder):
+        folder_path = Path(new_folder)
+
+        try:
+            self._verify_folder(folder_path, emptycheck=False)
+            self.profile_dict[name] = str(folder_path)
+            self.save_profiles()
+
+        except (FileNotFoundError, NotADirectoryError) as e:
+            print(e)
 
 
 class UserInput(FileProcessing):
@@ -225,7 +243,35 @@ if __name__ == "__main__":
                 print(f"Profile '{user.profile_name}' saved.")
 
         case "3":  # Modify existing
-            pass
+            cfg = ConfigUpdater()
+
+            if cfg.profile_dict:
+                print("1 - Delete profiles")
+                print("2 - Update output folder")
+                sub_choice = input("Your choice: ")
+
+                match sub_choice:
+                    case "1":
+                        selected_profiles = cfg.user_to_names()
+                        confirm = input(f"Delete {selected_profiles}? (y/n): ")
+                        if confirm.lower() == "y":
+                            cfg.delete_profile(selected_profiles)
+                            print("Profiles deleted.")
+
+                    case "2":
+                        selected_profiles = cfg.user_to_names()
+                        name = selected_profiles[0]
+                        new_folder = input(
+                            f"Drag the new output folder path for '{name}': "
+                        ).strip("'\"")
+                        cfg.update_profile_folder(name, new_folder)
+                        print(f"Profile '{name}' updated.")
+
+                    case _:
+                        print("Wrong input! Exiting...")
+
+            else:
+                print("No profiles found.")
 
         case "4":  # Extract .mbox
             user = UserInput()
