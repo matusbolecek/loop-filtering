@@ -24,37 +24,58 @@ class FileProcessing:
                 raise EmptyDirError("The provided directory is empty")
 
 
-class Config(FileProcessing):
+class DefConfig:
     def __init__(self):
-        self.dict = {}
-        self.path = Path("config.json")
+        self.defaults = {"threshold": 0.85}
 
-        if self.path.is_file():
-            with open(self.path, "r") as f:
-                content = f.read().strip()
-                if content:
-                    self.dict = json.loads(content)
 
-        self.keys_list = list(self.dict.keys())
+class Config(FileProcessing, DefConfig):
+    def __init__(self):
+        self.profiles_path = Path("profiles.json")
+        self.profile_dict = self._load(self.profiles_path)
+
+        self.conf_path = Path("config.json")
+        self.conf_dict = self._load(self.conf_path)
+
+        self.threshold = self.conf_dict.get("threshold", self.defaults.get("threshold"))
+
+        self.profile_list = list(self.profile_dict.keys())
+
         super().__init__()
 
-    def save(self):
-        with open(self.path, "w") as f:
-            json.dump(self.dict, f, indent=2)
+    def _load(self, dpath):
+        if dpath.is_file():
+            with open(dpath, "r") as f:
+                content = f.read().strip()
+
+            if content:
+                return json.loads(content)
+
+        return {}
+
+    def _save(self, d, dpath):
+        with open(dpath, "w") as f:
+            json.dump(d, f, indent=2)
+
+    def save_profiles(self):
+        self._save(self.profile_dict, self.profiles_path)
+
+    def save_opts(self):
+        self._save(self.conf_dict, self.conf_dict)
 
     def add_profile(self, name):
-        self.dict[name] = ""  # empty = use default at runtime
-        self.keys_list = list(self.dict.keys())
-        self.save()
+        self.profile_dict[name] = ""  # empty = use default at runtime
+        self.keys_list = list(self.profile_dict.keys())
+        self.save_profiles()
 
-    def _handle_default(self, name):
+    def _handle_default_profile(self, name):
         folder = Path("output") / name
         folder.mkdir(parents=True, exist_ok=True)
 
         return folder
 
     def get_folder(self, name):
-        folder = self.dict.get(name, None)
+        folder = self.profile_dict.get(name, None)
         if folder:
             try:
                 self._verify_folder(folder, emptycheck=False)
@@ -64,10 +85,10 @@ class Config(FileProcessing):
                 print(
                     "Folder defined in config does not exist. Falling back to default..."
                 )
-                return self._handle_default(name)
+                return self._handle_default_profile(name)
 
         else:
-            return self._handle_default(name)
+            return self._handle_default_profile(name)
 
     def user_to_names(self):
         print("Pick profiles by their number: ")
@@ -89,6 +110,36 @@ class Config(FileProcessing):
                 print("Invalid input! Try again...")
 
         return [self.keys_list[i] for i in choices_int]
+
+
+class ThresholdError(Exception):
+    pass
+
+
+class ConfigUpdater(Config):
+    def __init__(self):
+        super().__init__()
+
+    def update_threshold(self):
+        print("Updating the model threshold. Input a number (0.00 - 1.00)")
+        print("0.00 = all loops are accepted, 1.00 = only an exact match goes through")
+        choice = input("Your choice: ")
+
+        try:
+            choice = float(choice)
+
+            if choice < 0.00 or choice > 1.00:
+                raise ThresholdError
+
+            self.conf_dict["threshold"] = choice
+
+            self.save_opts()
+
+        except ThresholdError:
+            print("Invalid Threshold! No changes have been made")
+
+        except Exception as e:
+            print(f"An error has occurred: {e}. No changes have been made")
 
 
 class UserInput(FileProcessing):
@@ -138,7 +189,7 @@ if __name__ == "__main__":
             if user.read_input(profile=False):
                 cfg = Config()
 
-                if cfg.dict:
+                if cfg.profile_dict:
                     selected_profiles = cfg.user_to_names()
 
                     profile_paths = [
