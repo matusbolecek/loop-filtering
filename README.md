@@ -1,5 +1,13 @@
 # Automated Loop Filtering
 
+![Python](https://img.shields.io/badge/Python-3.10+-3670A0?style=flat&logo=python&logoColor=ffdd54)
+![Transformers](https://img.shields.io/badge/🤗_Transformers-FF9D00.svg?style=flat&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-%23013243.svg?style=flat&logo=numpy&logoColor=white)
+![Librosa](https://img.shields.io/badge/Librosa-Audio_Analysis-4B8BBE.svg?style=flat&logoColor=white)
+
+A machine-learning-powered tool for music producers that automatically sorts, filters, and organizes incoming audio loops and samples based on a custom preference profile
+
 # The Problem
 Many music instrumental producers share their e-mails under their YouTube type-beats. This leads to large amounts of loops / samples arriving into their inboxes. While this is often nice, as many of the samples are useful for further production, the inboxes eventually fill up and this causes problems. Moreover, with large quantities of samples coming to one's inbox, it is not time well spent manually sorting hundreds of loops every day.
 
