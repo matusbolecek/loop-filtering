@@ -106,7 +106,7 @@ class Config(FileProcessing, DefConfig):
                 choices_int = [int(x) for x in choices]
                 break
 
-            except:
+            except ValueError:
                 print("Invalid input! Try again...")
 
         return [self.keys_list[i] for i in choices_int]
